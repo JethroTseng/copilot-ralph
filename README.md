@@ -1,5 +1,7 @@
 # Copilot Ralph Node
 
+[中文](README.md) | [English](README.en.md)
+
 以 Node.js 實作的 Ralph 迭代式 AI 開發迴圈工具，透過 GitHub Copilot SDK 與事件串流，讓 AI 依照同一個任務反覆迭代，直到達成完成條件或達到限制。
 
 ## 本機安裝與測試
