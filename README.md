@@ -4,6 +4,53 @@
 
 以 Node.js 實作的 Ralph 迭代式 AI 開發迴圈工具，透過 GitHub Copilot SDK 與事件串流，讓 AI 依照同一個任務反覆迭代，直到達成完成條件或達到限制。
 
+## 使用 Release 獨立可執行檔（免安裝 Node/Bun）
+
+Create release 會提供跨平台的獨立可執行檔，下載後放到 PATH 即可使用。
+
+### macOS（Apple Silicon / Intel）
+
+Apple Silicon 請用 `arm64`，Intel 請用 `x64`（可用 `uname -m` 確認）。
+
+```bash
+# Apple Silicon (M1/M2/M3)
+curl -L -o copilot-ralph https://github.com/doggy8088/copilot-ralph/releases/latest/download/copilot-ralph-macos-arm64
+
+# Intel
+# curl -L -o copilot-ralph https://github.com/doggy8088/copilot-ralph/releases/latest/download/copilot-ralph-macos-x64
+
+chmod +x copilot-ralph
+sudo mv copilot-ralph /usr/local/bin/
+```
+
+### Linux x64
+
+```bash
+curl -L -o copilot-ralph https://github.com/doggy8088/copilot-ralph/releases/latest/download/copilot-ralph-linux-x64
+chmod +x copilot-ralph
+sudo mv copilot-ralph /usr/local/bin/
+```
+
+### Windows（PowerShell）
+
+```powershell
+$dest = "$env:LOCALAPPDATA\\copilot-ralph"
+New-Item -ItemType Directory -Force -Path $dest | Out-Null
+Invoke-WebRequest -Uri "https://github.com/doggy8088/copilot-ralph/releases/latest/download/copilot-ralph.exe" -OutFile "$dest\\copilot-ralph.exe"
+[Environment]::SetEnvironmentVariable("Path", $env:Path + ";$dest", "User")
+```
+
+### macOS 無法執行（安全性/權限）
+
+若出現「無法開啟，因為無法驗證開發者」或直接無法執行，多半是檔案帶有 quarantine 屬性。
+
+```bash
+xattr -dr com.apple.quarantine /path/to/copilot-ralph
+chmod +x /path/to/copilot-ralph
+```
+
+你也可以在 **系統設定 → 隱私權與安全性** 點選「仍要開啟」。
+
 ## 本機安裝與測試
 
 ### 前置需求
