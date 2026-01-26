@@ -178,7 +178,8 @@ copilot-ralph run "<your task description>"
 - `--working-dir`: working directory (default `.`)
 - `--streaming`: enable streaming (default `true`)
 - `--system-prompt`: custom system prompt (text, Markdown, or .txt file)
-- `--system-prompt-mode`: `append` or `replace`
+- `--system-prompt-file`: system prompt template file path (supports `{{PROMISE}}`; ignored when `--system-prompt` is set)
+- `--system-prompt-mode`: `append` or `replace` (used with `--system-prompt` or `--system-prompt-file`)
 - `--log-level`: `debug`, `info`, `warn`, `error`
 - `--session-id`: specify Copilot session ID to continue context on the next run
 - `--dry-run`: show settings only, do not run the loop

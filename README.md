@@ -178,7 +178,8 @@ copilot-ralph run "<你的任務描述>"
 - `--working-dir`：工作目錄（預設 `.`）
 - `--streaming`：是否開啟串流（預設 `true`）
 - `--system-prompt`：自訂系統提示（可為文字、Markdown 或 .txt 檔案）
-- `--system-prompt-mode`：`append` 或 `replace`
+- `--system-prompt-file`：系統提示模板檔案路徑（支援 `{{PROMISE}}`；與 `--system-prompt` 同時使用時會被忽略）
+- `--system-prompt-mode`：`append` 或 `replace`（搭配 `--system-prompt` 或 `--system-prompt-file`）
 - `--log-level`：`debug`、`info`、`warn`、`error`
 - `--session-id`：指定 Copilot session ID 以便在下一次執行時延續上下文
 - `--dry-run`：僅顯示設定，不執行迴圈

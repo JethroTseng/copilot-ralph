@@ -59,6 +59,7 @@ export let runWorkingDir = ".";
 export let runDryRun = false;
 export let runStreaming = true;
 export let runSystemPrompt = "";
+export let runSystemPromptFile = "";
 export let runSystemPromptMode: "append" | "replace" = "append";
 export let runLogLevel = "info";
 export let runSessionId = "";
@@ -76,6 +77,7 @@ export interface RunOptions {
   dryRun: boolean;
   streaming: boolean;
   systemPrompt: string;
+  systemPromptFile: string;
   systemPromptMode: "append" | "replace";
   logLevel: string;
   sessionId: string;
@@ -108,6 +110,7 @@ export const createRunCommand = (): Command => {
     .option("--dry-run", "show what would be executed without running", runDryRun)
     .option("--streaming <boolean>", "enable streaming responses", parseBoolean, runStreaming)
     .option("--system-prompt <prompt>", "custom system message, prompt text or Markdown/text path", runSystemPrompt)
+    .option("--system-prompt-file <path>", "system prompt template file path", runSystemPromptFile)
     .option("--system-prompt-mode <mode>", "system message mode: append or replace", runSystemPromptMode)
     .option("--log-level <level>", "log level: debug, info, warn, error", runLogLevel)
     .option("--session-id <id>", "reuse a Copilot session id to resume context", runSessionId)
@@ -220,6 +223,34 @@ export const resolvePrompt = async (prompt: string): Promise<string> => {
 
   const data = await readFile(prompt, "utf8");
   return data;
+};
+
+const resolveSystemPromptFile = async (filePath: string): Promise<string> => {
+  if (!filePath) {
+    throw new Error("system prompt file path is required");
+  }
+
+  let stat;
+  try {
+    stat = statSync(filePath);
+  } catch {
+    throw new Error(`system prompt file not found: ${filePath}`);
+  }
+
+  if (stat.isDirectory()) {
+    throw new Error(
+      `system prompt path ${filePath} is a directory, must be a Markdown or text file`
+    );
+  }
+
+  const ext = extname(filePath).toLowerCase();
+  if (ext !== ".md" && ext !== ".markdown" && ext !== ".txt") {
+    throw new Error(
+      `system prompt file ${filePath} must be a Markdown or text file with extension .md, .markdown, or .txt`
+    );
+  }
+
+  return readFile(filePath, "utf8");
 };
 
 export const buildLoopConfig = (prompt: string): LoopConfig => {
@@ -415,13 +446,16 @@ export const createSDKClient = async (loopConfig: LoopConfig) => {
     withLogLevel(runLogLevel)
   ];
 
-  const systemPrompt = buildSystemPrompt(loopConfig.promisePhrase);
-
   if (runSystemPrompt) {
     const resolved = await resolvePrompt(runSystemPrompt);
     opts.push(withSystemMessage(resolved, runSystemPromptMode));
   } else {
-    opts.push(withSystemMessage(systemPrompt, "append"));
+    const systemPromptTemplate = runSystemPromptFile
+      ? await resolveSystemPromptFile(runSystemPromptFile)
+      : undefined;
+    const systemPrompt = buildSystemPrompt(loopConfig.promisePhrase, systemPromptTemplate);
+    const mode = runSystemPromptFile ? runSystemPromptMode : "append";
+    opts.push(withSystemMessage(systemPrompt, mode));
   }
 
   // Check for Azure provider config from CLI options or environment variables
@@ -483,6 +517,9 @@ const applyRunOptions = (options: Record<string, unknown>) => {
   }
   if (typeof options.systemPrompt === "string") {
     runSystemPrompt = options.systemPrompt;
+  }
+  if (typeof options.systemPromptFile === "string") {
+    runSystemPromptFile = options.systemPromptFile;
   }
   if (typeof options.systemPromptMode === "string") {
     runSystemPromptMode = options.systemPromptMode as "append" | "replace";
