@@ -131,8 +131,55 @@ jobs:
           echo "npm install @willh/copilot-ralph@${{ needs.check-version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
-  create-release:
+  build-executables:
     needs: [check-version, publish-npm]
+    if: needs.check-version.outputs.should-publish == 'true'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            artifact: windows
+            script: ./build-windows.ps1
+            args: ""
+          - os: ubuntu-latest
+            artifact: linux
+            script: ./build-linux.ps1
+            args: ""
+          - os: macos-latest
+            artifact: macos
+            script: ./build-macos.ps1
+            args: "-Arch both"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 'latest'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build executable
+        run: pwsh -File ${{ matrix.script }} ${{ matrix.args }}
+
+      - name: Upload executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: executables-${{ matrix.artifact }}
+          path: dist/copilot-ralph*
+
+  create-release:
+    needs: [check-version, publish-npm, build-executables]
     if: needs.check-version.outputs.should-publish == 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -161,6 +208,13 @@ jobs:
       - name: Pack package
         run: npm pack
 
+      - name: Download executables
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          pattern: executables-*
+          merge-multiple: true
+
       - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
@@ -179,4 +233,4 @@ jobs:
             --title "v${{ needs.check-version.outputs.version }}" \
             --generate-notes \
             --verify-tag \
-            *.tgz
+            *.tgz release-assets/*
