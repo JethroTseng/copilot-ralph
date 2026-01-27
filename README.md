@@ -42,14 +42,19 @@ Invoke-WebRequest -Uri "https://github.com/doggy8088/copilot-ralph/releases/late
 
 ### macOS 無法執行（安全性/權限）
 
-若出現「無法開啟，因為無法驗證開發者」或直接無法執行，多半是檔案帶有 quarantine 屬性。
+若出現「已損毀」、「無法開啟，因為無法驗證開發者」或直接被系統 `killed`，多半是檔案帶有 quarantine 屬性或尚未被 macOS 放行。
+
+請先走 **官方安全流程**（推薦）：
+
+1. 於 Finder 對檔案按右鍵 → **打開**，或
+2. 到 **系統設定 → 隱私權與安全性**，在底部按 **仍要打開**
+
+若上述方式仍無法執行，再使用以下方式移除 quarantine（屬於繞過 Gatekeeper）：
 
 ```bash
-xattr -dr com.apple.quarantine /path/to/copilot-ralph
+xattr -d com.apple.quarantine /path/to/copilot-ralph
 chmod +x /path/to/copilot-ralph
 ```
-
-你也可以在 **系統設定 → 隱私權與安全性** 點選「仍要開啟」。
 
 ## 本機安裝與測試
 
