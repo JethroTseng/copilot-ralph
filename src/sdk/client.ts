@@ -311,9 +311,11 @@ export class CopilotClient {
   }
 
   async stop(): Promise<void> {
-    if (!this.started) {
+    if (!this.started && !this.sdkClient && !this.sdkSession) {
       return;
     }
+
+    this.started = false;
 
     if (this.sdkSession) {
       try {
@@ -332,8 +334,6 @@ export class CopilotClient {
       }
       this.sdkClient = null;
     }
-
-    this.started = false;
   }
 
   async createSession(_signal?: AbortSignal): Promise<void> {

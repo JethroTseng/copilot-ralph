@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  CopilotClient,
   DefaultModel,
   isRetryableError,
   newCopilotClient,
@@ -69,5 +70,53 @@ describe("resolveCopilotCliPath", () => {
         process.env.COPILOT_CLI_PATH = previous;
       }
     }
+  });
+});
+
+describe("CopilotClient.stop", () => {
+  it("cleans up partially started SDK resources", async () => {
+    const client = newCopilotClient();
+    const state = client as unknown as {
+      sdkClient: { stop: () => Promise<void> } | null;
+      sdkSession: { destroy: () => Promise<void> } | null;
+      started: boolean;
+    };
+
+    let sessionDestroyed = 0;
+    let clientStopped = 0;
+
+    state.started = false;
+    state.sdkSession = {
+      destroy: async () => {
+        sessionDestroyed += 1;
+      }
+    };
+    state.sdkClient = {
+      stop: async () => {
+        clientStopped += 1;
+      }
+    };
+
+    await client.stop();
+
+    expect(sessionDestroyed).toBe(1);
+    expect(clientStopped).toBe(1);
+    expect(state.sdkSession).toBeNull();
+    expect(state.sdkClient).toBeNull();
+    expect(state.started).toBe(false);
+  });
+
+  it("remains a no-op when nothing was initialized", async () => {
+    const client = new CopilotClient({
+      model: DefaultModel,
+      logLevel: "info",
+      workingDir: ".",
+      systemMessageMode: "append",
+      systemMessage: "",
+      timeoutMs: 60_000,
+      streaming: true
+    });
+
+    await expect(client.stop()).resolves.toBeUndefined();
   });
 });
