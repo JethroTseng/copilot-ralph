@@ -157,12 +157,15 @@ export const runLoop = async (promptArg: string | undefined): Promise<number> =>
   let sdkClient;
   try {
     sdkClient = await createSDKClient(loopConfig);
+  } catch (err) {
+    throw new Error(formatSDKClientError("create", err));
+  }
+
+  try {
     await sdkClient.start();
   } catch (err) {
-    if (sdkClient) {
-      await sdkClient.stop();
-    }
-    throw new Error(formatSDKClientError(err));
+    await sdkClient.stop();
+    throw new Error(formatSDKClientError("start", err));
   }
 
   try {
@@ -202,18 +205,22 @@ export const runLoop = async (promptArg: string | undefined): Promise<number> =>
   }
 };
 
-export const formatSDKClientError = (err: unknown): string => {
+export const formatSDKClientError = (
+  stage: "create" | "start",
+  err: unknown
+): string => {
   const error = err instanceof Error ? err : new Error("sdk client creation failed");
+  const action = stage === "create" ? "create" : "start";
 
   if (error.message.includes(sdkProtocolMismatchPrefix)) {
     return [
-      `failed to start Copilot SDK client: ${error.message}`,
+      `failed to ${action} Copilot SDK client: ${error.message}`,
       "Update @github/copilot-sdk to a protocol-compatible version and reinstall dependencies.",
       "For local builds, run `npm install` after pulling this change or `npm install @github/copilot-sdk@latest`."
-    ].join(" ");
+    ].join("\n");
   }
 
-  return `failed to start Copilot SDK client: ${error.message}`;
+  return `failed to ${action} Copilot SDK client: ${error.message}`;
 };
 
 export const resolvePrompt = async (prompt: string): Promise<string> => {

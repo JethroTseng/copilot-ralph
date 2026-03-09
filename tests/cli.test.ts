@@ -256,6 +256,7 @@ describe("createSDKClient", () => {
 describe("formatSDKClientError", () => {
   it("adds upgrade guidance for protocol mismatches", () => {
     const message = formatSDKClientError(
+      "start",
       new Error(
         "SDK protocol version mismatch: SDK expects version 2, but server reports version 3."
       )
@@ -264,10 +265,16 @@ describe("formatSDKClientError", () => {
     expect(message).toContain("failed to start Copilot SDK client");
     expect(message).toContain("@github/copilot-sdk");
     expect(message).toContain("npm install");
+    expect(message).toContain("\n");
   });
 
   it("preserves non-protocol startup errors", () => {
-    const message = formatSDKClientError(new Error("permission denied"));
+    const message = formatSDKClientError("start", new Error("permission denied"));
     expect(message).toBe("failed to start Copilot SDK client: permission denied");
+  });
+
+  it("distinguishes client creation failures", () => {
+    const message = formatSDKClientError("create", new Error("system prompt file not found"));
+    expect(message).toBe("failed to create Copilot SDK client: system prompt file not found");
   });
 });
