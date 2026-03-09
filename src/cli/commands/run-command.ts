@@ -68,6 +68,8 @@ export let runAzureApiKey = "";
 export let runAzureApiVersion = "2024-10-21";
 export let runAzureWireApi: "completions" | "responses" = "completions";
 
+const sdkProtocolMismatchPrefix = "SDK protocol version mismatch";
+
 export interface RunOptions {
   maxIterations: number;
   timeout: number;
@@ -155,11 +157,13 @@ export const runLoop = async (promptArg: string | undefined): Promise<number> =>
   let sdkClient;
   try {
     sdkClient = await createSDKClient(loopConfig);
+    await sdkClient.start();
   } catch (err) {
-    const error = err instanceof Error ? err : new Error("sdk client creation failed");
-    throw new Error(`failed to create SDK client: ${error.message}`);
+    if (sdkClient) {
+      await sdkClient.stop();
+    }
+    throw new Error(formatSDKClientError(err));
   }
-  await sdkClient.start();
 
   try {
     const engine = new LoopEngine(loopConfig, sdkClient);
@@ -196,6 +200,20 @@ export const runLoop = async (promptArg: string | undefined): Promise<number> =>
   } finally {
     await sdkClient.stop();
   }
+};
+
+export const formatSDKClientError = (err: unknown): string => {
+  const error = err instanceof Error ? err : new Error("sdk client creation failed");
+
+  if (error.message.includes(sdkProtocolMismatchPrefix)) {
+    return [
+      `failed to start Copilot SDK client: ${error.message}`,
+      "Update @github/copilot-sdk to a protocol-compatible version and reinstall dependencies.",
+      "For local builds, run `npm install` after pulling this change or `npm install @github/copilot-sdk@latest`."
+    ].join(" ");
+  }
+
+  return `failed to start Copilot SDK client: ${error.message}`;
 };
 
 export const resolvePrompt = async (prompt: string): Promise<string> => {

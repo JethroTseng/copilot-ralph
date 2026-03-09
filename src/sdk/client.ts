@@ -1,5 +1,6 @@
 import {
   CopilotClient as CopilotSDKClient,
+  approveAll,
   type CopilotClientOptions,
   type CopilotSession,
   type ResumeSessionConfig,
@@ -342,7 +343,8 @@ export class CopilotClient {
 
     const sessionConfig: SessionConfig = {
       model: this.config.model,
-      streaming: this.config.streaming
+      streaming: this.config.streaming,
+      onPermissionRequest: approveAll
     };
 
     if (this.config.systemMessage) {
@@ -358,6 +360,7 @@ export class CopilotClient {
 
     const resumeConfig: ResumeSessionConfig = {
       streaming: this.config.streaming,
+      onPermissionRequest: approveAll,
       ...(this.config.provider ? { provider: this.config.provider } : {})
     };
 

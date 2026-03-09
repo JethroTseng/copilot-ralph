@@ -8,7 +8,7 @@ Ralph iterative AI development loop tool implemented in Node.js. It uses the Git
 
 ### Prerequisites
 
-- Node.js 18 or newer
+- Node.js 20 or newer
 - Bun (for build and tests)
 - npm or yarn
 - GitHub Copilot account and authorization (requires an active Copilot subscription)
@@ -27,6 +27,8 @@ Ralph iterative AI development loop tool implemented in Node.js. It uses the Git
    ```bash
    npm install
    ```
+
+   If you previously saw `SDK protocol version mismatch`, pull the latest code and rerun `npm install` so `@github/copilot-sdk` and the packaged Copilot CLI are upgraded together.
 
 3. **Run type checking**
 

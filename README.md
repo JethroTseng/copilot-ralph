@@ -60,7 +60,7 @@ chmod +x /path/to/copilot-ralph
 
 ### 前置需求
 
-- Node.js 18 或以上版本
+- Node.js 20 或以上版本
 - Bun（建置與測試用）
 - npm 或 yarn
 - GitHub Copilot 帳號與授權（需要有效的 Copilot 訂閱）
@@ -79,6 +79,8 @@ chmod +x /path/to/copilot-ralph
    ```bash
    npm install
    ```
+
+   如果你之前遇到 `SDK protocol version mismatch`，請先拉取最新程式碼後重新執行 `npm install`，讓 `@github/copilot-sdk` 與隨附的 Copilot CLI 一起升級。
 
 3. **執行型別檢查**
 

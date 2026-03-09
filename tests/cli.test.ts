@@ -7,6 +7,7 @@ import {
   buildLoopConfig,
   createSDKClient,
   displayEvents,
+  formatSDKClientError,
   printDryRun,
   resolvePrompt,
   runLogLevel,
@@ -249,5 +250,24 @@ describe("createSDKClient", () => {
       systemPromptMode: oldSystemMode,
       logLevel: oldLogLevel
     });
+  });
+});
+
+describe("formatSDKClientError", () => {
+  it("adds upgrade guidance for protocol mismatches", () => {
+    const message = formatSDKClientError(
+      new Error(
+        "SDK protocol version mismatch: SDK expects version 2, but server reports version 3."
+      )
+    );
+
+    expect(message).toContain("failed to start Copilot SDK client");
+    expect(message).toContain("@github/copilot-sdk");
+    expect(message).toContain("npm install");
+  });
+
+  it("preserves non-protocol startup errors", () => {
+    const message = formatSDKClientError(new Error("permission denied"));
+    expect(message).toBe("failed to start Copilot SDK client: permission denied");
   });
 });

@@ -2,6 +2,9 @@
   "name": "@willh/copilot-ralph",
   "version": "0.3.2",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "bin": {
     "copilot-ralph": "dist/cli-entry.js"
   },
@@ -14,7 +17,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@github/copilot-sdk": "^0.1.18",
+    "@github/copilot-sdk": "^0.1.32",
     "chalk": "^5.4.1",
     "commander": "^12.1.0",
     "ms": "^2.1.3"
