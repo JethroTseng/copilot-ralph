@@ -100,6 +100,61 @@ chmod +x /path/to/copilot-ralph
    bun run test:watch
    ```
 
+### 備份既有全域版本後，切換到目前 repo 版本
+
+如果你本機已經安裝可正常運作的 `copilot-ralph`，建議先備份再切換到目前 repo 的最新版：
+
+1. **備份目前的全域安裝**
+
+   ```powershell
+   $backupRoot = "$env:LOCALAPPDATA\copilot-ralph-backups\<timestamp>"
+   New-Item -ItemType Directory -Force -Path $backupRoot | Out-Null
+
+   Copy-Item "$env:APPDATA\npm\node_modules\@willh\copilot-ralph" `
+     -Destination (Join-Path $backupRoot "global-package") `
+     -Recurse -Force
+
+   Copy-Item "$env:APPDATA\npm\copilot-ralph.ps1" `
+     -Destination (Join-Path $backupRoot "copilot-ralph.ps1") -Force
+   Copy-Item "$env:APPDATA\npm\copilot-ralph.cmd" `
+     -Destination (Join-Path $backupRoot "copilot-ralph.cmd") -Force
+   Copy-Item "$env:APPDATA\npm\copilot-ralph" `
+     -Destination (Join-Path $backupRoot "copilot-ralph") -Force
+   ```
+
+   若你也有使用 release 獨立執行檔，可一併備份：
+
+   ```powershell
+   Copy-Item "$env:LOCALAPPDATA\copilot-ralph\copilot-ralph.exe" `
+     -Destination (Join-Path $backupRoot "copilot-ralph.exe") -Force
+   ```
+
+2. **建置目前 repo**
+
+   ```powershell
+   .\node_modules\.bin\tsc.cmd -p tsconfig.json
+   node scripts/copy-assets.mjs
+   node scripts/inject-version.mjs
+   ```
+
+3. **用 `npm link` 切換到目前 repo**
+
+   ```powershell
+   npm link
+   ```
+
+   完成後，全域 `copilot-ralph` 會指向目前工作目錄。
+
+4. **驗證目前啟用的是最新版**
+
+   ```powershell
+   copilot-ralph run --dry-run "verify install"
+   ```
+
+5. **需要回復時**
+
+   先執行 `npm unlink -g @willh/copilot-ralph`，再把備份目錄中的 `global-package` 與 shim 檔案複製回原本位置即可。
+
 ### 開發模式執行
 
 使用 `tsx` 直接執行 TypeScript 原始碼（無需先建置）：
